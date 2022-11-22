@@ -1,3 +1,6 @@
+# Data folder (keep this local)
+data/
+
 # History files
 .Rhistory
 .Rapp.history
