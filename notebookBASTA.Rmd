@@ -34,6 +34,16 @@ There were a total of 28 growing blends (4 x 3 x 3 + 4 controls). For each blend
 On average, is there an effect of growing medium and/or the addition of Trichoderma on the weight of the curved strawberries. (data set 2)
 
 ---
+# lib
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+```
+
+
+
 
 # Read Data
 
@@ -99,14 +109,35 @@ Explore your data with some illustrative graphs and tables. What can you see on 
 ```{r results = 'hide'}
 
 curved_strawberry<-data[,c(1,4:5,9,19)]
-curved_strawberry$Greenhouse <- factor(curved_strawberry$Greenhouse)
-curved_strawberry$Trichoderma <- factor(curved_strawberry$Trichoderma)
-curved_strawberry$Substrate <- factor(curved_strawberry$Substrate)
+
+curved_strawberry %>% 
+  ggplot(aes(x=Substrate,y=Curved_strawberries, fill=factor(Substrate))) +
+  geom_boxplot() + 
+  labs(fill = "substrate") + 
+  geom_point(position=position_jitterdodge(),alpha=0.3) +
+  theme_bw(base_size = 16)
+
+curved_strawberry %>% 
+  ggplot(aes(x=Trichoderma,y=Curved_strawberries, fill=factor(Trichoderma))) +
+  geom_boxplot() + 
+  labs(fill = "Trichoderma") + 
+  geom_point(position=position_jitterdodge(),alpha=0.3) +
+  theme_bw(base_size = 16)
+
+curved_strawberry %>% 
+  filter(Trichoderma %in% c("None","Trich1","Trich2","Trich3")) %>%
+  ggplot(aes(x=Substrate,y=Curved_strawberries, fill=factor(Trichoderma))) +
+  geom_boxplot() + 
+  labs(fill = "Trichoderma") + 
+  geom_point(position=position_jitterdodge(),alpha=0.3) +
+  theme_bw(base_size = 16)
+
+
+
+
 ```
-```{r}
-summary(curved_strawberry)
-summary
-```
+
+
 # Model selection and statisticial inference
 Based on the data exploration and the type of data, which model will you use and are the assumptions fulfilled? What can you do to improve the model? Fit this model and do statistical testing with the best possible model from what you have learned in the course.
 
