@@ -67,7 +67,6 @@ colnames(data[,c(2:9)])
 
 ## substrate is combination of peat(peat,peatfree) and Yes(No-biochar,biochar)
 
-
 #used response variable
 colnames(data[,c(6,7,9)])
 
@@ -80,17 +79,25 @@ colnames(data[,c(3:4)])
 **Experimental unit (is this the same for each response variable?):**
 
 # Hypotheses
-Indicate all null & alternative hypotheses for your research question.
+
+H01: On average, the growing medium has no effect on the weight of the curved strawberries
+
+H02: On average, the addition of Trichoderma has no effect on the weight of the curved strawberries
+
+H03: The effect of Trichoderma addition on the weight of the curved strawberries is not different for the different growing mediums 
+
+Ha1: On average, the growing medium has an effect on the weight of the curved strawberries
+
+Ha2: On average, the addition of Trichoderma has an effect on the weight of the curved strawberries
+
+Ha3: The effect of Trichoderma addition on the weight of the curved strawberries is different for the different growing mediums
 
 # Data exploration
 Explore your data with some illustrative graphs and tables. What can you see on those? Are there already some trends appearing? Make all graphs through the package ggplot and try to make them as illustrative and attractive as possible.
 
 ```{r results = 'hide'}
 
-boxplot(data$Curved_strawberries~data$Peat)
-boxplot(data$Curved_strawberries~data$Yes)
-boxplot(data$Curved_strawberries~data$Substrate)
-boxplot(data$Curved_strawberries~data$Trichoderma)
+curved_stawberry<-data[,c(1,4:5,9,19)]
 
 ```
 
