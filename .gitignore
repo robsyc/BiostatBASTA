@@ -1,5 +1,6 @@
 # Data folder (keep this local)
 data/
+.DS_Store
 
 # History files
 .Rhistory

@@ -1,13 +1,13 @@
 <<<<<<< HEAD
 ---
 title: "Biostatistics project - Group 25"
-author: "Robbe Claeys, Tom Nissens, ..."
+author: "Emma Van Kerckhove, Kylian Baeyens, Robbe Claeys, Tom Nissens"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
 # BASTA strawberry trial 2022
-This project for the biostatistics course is based on the BASTA research (Biochar’s Added value) organised by ILVO, UHasselt and pcfruit.
+The biostatistics course project is based on the BASTA research (Biochar’s Added value) organised by ILVO, UHasselt and pcfruit.
 
 Biochar is the residual product formed after pyrolysis of biomass and has currently no economic value. In this project researchers are interested to see if (1) Biochar can partly replace peat and (2) Biochar can be used to promote plant development and/or plant disease resistance of strawberry.
 
@@ -17,9 +17,9 @@ Biochar is the residual product formed after pyrolysis of biomass and has curren
 
 - the type of growing medium (peat, peat_biochar, peatfree, peatfree_biochar)
 - the addition of biochar as a vaccine (vaccine 1-3)
-- the addition of *Trichoderma* (Trichoderma 1-3)
+- the addition of *Trichoderma* (*Trichoderma* 1-3)
 
-There were a total of 28 growing blends (4 x 3 x 3 + 4 controls). For each blend three plant trays were filled, each containing five strawberry plants, and replicated four times. The trays were divided over two greenhouses (greenhouse 1-2)
+There were a total of 28 growing blends (4 x 3 x 3 + 4 controls). For each blend three plant trays were filled, each containing five strawberry plants, and replicated four times. The trays were divided over two greenhouses (greenhouse 1-2).
 
 **Measurements:**
 
@@ -34,118 +34,206 @@ There were a total of 28 growing blends (4 x 3 x 3 + 4 controls). For each blend
 On average, is there an effect of growing medium and/or the addition of Trichoderma on the weight of the curved strawberries. (data set 2)
 
 ---
-# lib
 
-```{r}
+# Data Preparation
+## Load the libraries
+
+```{r results = 'hide', warning = FALSE}
 library(ggplot2)
 library(dplyr)
 
 ```
 
 
-# Read Data
+## Read the data
 
-```{r results = 'hide'}
+```{r}
 data <- read.delim("data/BASTA_Dataset2_Trichoderma.txt", header = TRUE, stringsAsFactors = FALSE, quote = "", sep = "\t")
+head(data)
 ```
 
+# Research Investigation
+## Variables
 
-# Variables
-
-**Response variable(s):**  
+**Response variable:**  
 - weight of the curved strawberries per plant in kg: `r colnames(data[19])`
 
 **Explanatory variable(s):**  
-- growing medium (peat and/or biochar): `r colnames(data[,c(6,7)])`
-- addition of *Trichoderma*: `r colnames(data[,c(9)])`
-- greenhouse: `r colnames(data[,c(3)])`
+- growing medium (peat and/or biochar): `r colnames(data[5])`
+- addition of *Trichoderma*: `r colnames(data[9])`
+- greenhouse: `r colnames(data[3])`
 
-**Observational unit (is this the same for each response variable?):** The curved strawberries per plant.
+**Observational unit:** The curved strawberries per plant.
 
-**Experimental unit (is this the same for each response variable?):** Three trays of 5 plants.
+**Experimental unit:** Three trays of 5 plants.
 
-# Hypotheses
+## Hypotheses
 
-H01: On average, the growing medium has no effect on the weight of the curved strawberries
+H01: On average, the growing medium has no effect on the weight of the curved strawberries.  
 
-H02: On average, the addition of Trichoderma has no effect on the weight of the curved strawberries
+H02: On average, the addition of *Trichoderma* has no effect on the weight of the curved strawberries.  
 
-H03: The effect of Trichoderma addition on the weight of the curved strawberries is not different for the different growing mediums 
+H03: The effect of *Trichoderma* addition on the weight of the curved strawberries does not differ for the different growth media.  
 
-Ha1: On average, the growing medium has an effect on the weight of the curved strawberries
 
-Ha2: On average, the addition of Trichoderma has an effect on the weight of the curved strawberries
+Ha1: On average, the growing medium has an effect on the weight of the curved strawberries.  
 
-Ha3: The effect of Trichoderma addition on the weight of the curved strawberries is different for the different growing mediums
+Ha2: On average, the addition of *Trichoderma* has an effect on the weight of the curved strawberries.  
 
-# Data exploration
-Explore your data with some illustrative graphs and tables. What can you see on those? Are there already some trends appearing? Make all graphs through the package ggplot and try to make them as illustrative and attractive as possible.
+Ha3: The effect of *Trichoderma* addition on the weight of the curved strawberries differs for the different growth media.  
 
-```{r results = 'hide'}
+# Data Exploration
+First we filter the data, generate an appropriate format, and provide some basic statistics.
 
-curved_strawberry<-data[,c(1,4:5,9,19)]
+```{r}
+df <- data.frame(data[,c(1, 4:5, 9, 19)])
+df$Greenhouse <- factor(df$Greenhouse)
+df$Trichoderma <- factor(df$Trichoderma)
+df$Substrate <- factor(df$Substrate)
 
-curved_strawberry %>% 
-  ggplot(aes(x=Substrate,y=Curved_strawberries, fill=factor(Substrate))) +
-  geom_boxplot() + 
-  labs(fill = "substrate") + 
-  geom_point(position=position_jitterdodge(),alpha=0.3) +
-  theme_bw(base_size = 16)
-
-curved_strawberry %>% 
-  ggplot(aes(x=Trichoderma,y=Curved_strawberries, fill=factor(Trichoderma))) +
-  geom_boxplot() + 
-  labs(fill = "Trichoderma") + 
-  geom_point(position=position_jitterdodge(),alpha=0.3) +
-  theme_bw(base_size = 16)
-
-curved_strawberry %>% 
-  filter(Trichoderma %in% c("None","Trich1","Trich2","Trich3")) %>%
-  ggplot(aes(x=Substrate,y=Curved_strawberries, fill=factor(Trichoderma))) +
-  geom_boxplot() + 
-  labs(fill = "Trichoderma") + 
-  geom_point(position=position_jitterdodge(),alpha=0.3) +
-  theme_bw(base_size = 16)
-
-curved_strawberry %>% 
-  ggplot(aes(x=Greenhouse,y=Curved_strawberries, fill=factor(Greenhouse))) +
-  geom_boxplot() + 
-  labs(fill = "Greenhouse") + 
-  geom_point(position=position_jitterdodge(),alpha=0.3) +
-  theme_bw(base_size = 16)
-
-curved_strawberry$Greenhouse <- factor(curved_strawberry$Greenhouse)
-curved_strawberry$Trichoderma <- factor(curved_strawberry$Trichoderma)
-curved_strawberry$Substrate <- factor(curved_strawberry$Substrate)
-
-summary(curved_strawberry)
+head(df)
+summary(df)
 ```
 
+Next, some basic plots are generated to provide an initial intuitive view on the effects of the explanatory variables.
 
-
-# Model selection and statisticial inference
 ```{r}
-fit=lm(Curved_strawberries~Substrate+Trichoderma+Substrate:Trichoderma,data=curved_strawberry)
-par(mfrow=c(1,1))
+# plots effect of substrate choice
+df %>% 
+  ggplot(aes(x=Substrate, y=Curved_strawberries, fill=Substrate)) +
+  geom_boxplot() + 
+  labs(
+    title = "Effect of substrate choice on the weight of curved strawberries", 
+    y = "Curved strawberry weight per plant (kg)") + 
+  geom_jitter(width=0.2, alpha=0.3) +
+  theme_bw()
+
+# plots effect of Trichoderma addition
+df %>% 
+  ggplot(aes(x=Trichoderma, y=Curved_strawberries, fill=Trichoderma)) +
+  geom_boxplot() + 
+  labs(
+    title = "Effect of Trichoderma addition on the weight of curved strawberries", 
+    y = "Curved strawberry weight per plant (kg)") + 
+  geom_jitter(width=0.2, alpha=0.3) +
+  theme_bw()
+
+# plots effect of greenhouse choice
+df %>% 
+  ggplot(aes(x=Greenhouse, y=Curved_strawberries, fill=Greenhouse)) +
+  geom_boxplot() + 
+  labs(
+    title = "Effect of greenhouse choice on the weight of curved strawberries", 
+    y = "Curved strawberry weight per plant (kg)") + 
+  geom_jitter(width=0.2, alpha=0.3) +
+  theme_bw()
+```
+
+We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect.
+
+To investigate further, a plot was generated that distinguishes between the substrate choice & *Trichoderma* addition effects. This leads to believe that the effects of both explanatory variables are linked.
+
+```{r}
+# plots effect of substrate choice & Trichoderma addition
+df %>% 
+  filter(Trichoderma %in% c("None","Trich1","Trich2","Trich3")) %>%
+  ggplot(aes(x=Substrate, y=Curved_strawberries, fill=Trichoderma)) +
+  geom_boxplot() + 
+    labs(
+    title = "Effect of substrate choice & Trichoderma addition\non the weight of curved strawberries", 
+    y = "Curved strawberry weight per plant (kg)") + 
+  geom_jitter(width=0.2, alpha=0.3) +
+  theme_bw()
+```
+
+Due to the limited number of observations and large number of variables, trends in these plots should not be taken for granted and further statistical investigation will be performed.
+
+# Model Selection & Statisticial Inference
+
+I've added this assumption checking part because I thought normality was a problem but performing log-transorm does not help :( A square root transformation seems to do somewhat better. I noticed there is a value 0 in our dataset (no curved strawberreis -> thus weight is 0) should be remove this? Since it is not really a data point I think.
+
+## Assumption checking
+To check normality, histograms & QQ-plots are generated.
+
+```{r}
+df %>% 
+  ggplot(aes(x = Curved_strawberries)) +
+  geom_histogram(fill = "#D95C68", binwidth = 0.001) +
+      labs(
+    title = "Normality confirmation of curved strawberry weight measures: Histogram", 
+    x = "Curved strawberry weight per plant (kg)") + 
+  theme_bw()
+
+df %>% 
+  ggplot(aes(sample = Curved_strawberries)) +
+  stat_qq() +
+  stat_qq_line(col = "#D95C68") +
+  labs(
+    title = "Normality confirmation of curved strawberry weight measures: QQ-plot", 
+    x = "Theoretical Quantiles",
+    y = "Sample Quantities") + 
+  theme_bw()
+```
+
+The data are not normally distributed with a tail to the right. A square root-transformation might help to make the data more normally distributed. The assumptions are re-evaluated.
+
+```{r warning=FALSE}
+df_log <- df
+df_log$Curved_strawberries <- ((df_log$Curved_strawberries)^0.2)
+
+df_log %>% 
+  ggplot(aes(x = Curved_strawberries)) +
+  geom_histogram(fill = "#D95C68") +
+      labs(
+    title = "Normality confirmation of curved strawberry weight measures\nafter log2-transormation: Histogram", 
+    x = "Curved strawberry weight per plant (kg)") + 
+  theme_bw()
+
+df_log %>% 
+  ggplot(aes(sample = Curved_strawberries)) +
+  stat_qq() +
+  stat_qq_line(col = "#D95C68") +
+  labs(
+    title = "Normality confirmation of curved strawberry weight measures\nafter log2-transormation: QQ-plot", 
+    x = "Theoretical Quantiles",
+    y = "Sample Quantities") + 
+  theme_bw()
+```
+
+Although homoscedasticity seems to be met (based on the previous boxplots), an additional sanity check is performed with Levene’s test (robust against normality violations).
+
+```{r warning=FALSE}
+library(car)
+leveneTest(Curved_strawberries ~ Substrate*Trichoderma, data = df)
+```
+
+## Model fitting
+
+```{r}
+fit = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, data = df)
+par(mfrow = c(1,1))
 plot(fit)
 summary(fit)
-CIfit=confint(fit)
+
+CIfit = confint(fit)
 CIfit
 ```
 
-```{r}
-strawberry_curved_log2_no0 <- na.omit(strawberry_curved_log2)
-strawberry_curved_log2 <- curved_strawberry
-strawberry_curved_log2$Curved_strawberries <- log2(curved_strawberry$Curved_strawberries)
+There is not enough data to assess homoscedasticity for every variable combination. The QQ-plot of the residuals suggests that they are normally distributed, however, there are only a limited number of observations to assess normality. This should be kept in mind for further analysis.
 
-fit2 = lm(Curved_strawberries~Substrate+Trichoderma+Substrate:Trichoderma,data=strawberry_curved_log2_no0)
-par(mfrow=c(1,1))
+```{r}
+strawberry_curved_log2 <- df
+strawberry_curved_log2$Curved_strawberries <- log2(df$Curved_strawberries)
+strawberry_curved_log2$Curved_strawberries[is.infinite(strawberry_curved_log2$Curved_strawberries)] <- NA
+strawberry_curved_log2_no0 <- na.omit(strawberry_curved_log2)
+
+fit2 = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, 
+          data = strawberry_curved_log2_no0)
+par(mfrow = c(1,1))
 plot(fit2)
 summary(fit2)
-
 ```
 # Conclusion
 Write an appropriate conclusion as if you would publish these results in a scientific journal.
 
 The project needs to be handed in by Friday 23/12. Hand in an HTML file containing all your code + conclusions. The file should be saved as ProjectBiostatistics_Member1_Member2_Member3_Member4.
-
