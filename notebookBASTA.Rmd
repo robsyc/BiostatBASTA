@@ -133,7 +133,17 @@ CIfit=confint(fit)
 CIfit
 ```
 
+```{r}
+strawberry_curved_log2_no0 <- na.omit(strawberry_curved_log2)
+strawberry_curved_log2 <- curved_strawberry
+strawberry_curved_log2$Curved_strawberries <- log2(curved_strawberry$Curved_strawberries)
 
+fit2 = lm(Curved_strawberries~Substrate+Trichoderma+Substrate:Trichoderma,data=strawberry_curved_log2_no0)
+par(mfrow=c(1,1))
+plot(fit2)
+summary(fit2)
+
+```
 # Conclusion
 Write an appropriate conclusion as if you would publish these results in a scientific journal.
 
