@@ -98,11 +98,15 @@ Explore your data with some illustrative graphs and tables. What can you see on 
 
 ```{r results = 'hide'}
 
-curved_stawberry<-data[,c(1,4:5,9,19)]
-
+curved_strawberry<-data[,c(1,4:5,9,19)]
+curved_strawberry$Greenhouse <- factor(curved_strawberry$Greenhouse)
+curved_strawberry$Trichoderma <- factor(curved_strawberry$Trichoderma)
+curved_strawberry$Substrate <- factor(curved_strawberry$Substrate)
 ```
-
-
+```{r}
+summary(curved_strawberry)
+summary
+```
 # Model selection and statisticial inference
 Based on the data exploration and the type of data, which model will you use and are the assumptions fulfilled? What can you do to improve the model? Fit this model and do statistical testing with the best possible model from what you have learned in the course.
 
