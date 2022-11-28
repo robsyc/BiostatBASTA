@@ -30,7 +30,7 @@ There were a total of 28 growing blends (4 x 3 x 3 + 4 controls). For each blend
 - dry biomass per plant
 
 **Research question:**  
-On average, is there an effect of growing medium and/or the addition of Trichoderma on the weight of the curved strawberries. (data set 2)
+On average, is there an effect of growing medium and/or the addition of *Trichoderma* on the weight of the curved strawberries. (data set 2)
 
 ---
 
@@ -44,40 +44,32 @@ data <- read.delim("data/BASTA_Dataset2_Trichoderma.txt", header = TRUE, strings
 # Variables
 
 
-**Response variable(s):**
+**Response variable(s):**  
+- weight of the curved strawberries per plant in kg: `r colnames(data[19])`
 
 ```{r results = 'hide'}
-
 # all response variables
 colnames(data[,c(10:22)])
-
-#used response variable
-colnames(data[19])
-
 #confounding: same effect on all strawberry forms? + other?
 colnames(data[,c(17:19)])
-
 ```
 
-**Explanatory variable(s):**
+**Explanatory variable(s):**  
+- growing medium (peat and/or biochar): `r colnames(data[,c(6,7)])`
+- addition of *Trichoderma*: `r colnames(data[,c(9)])`
+
 
 ```{r results = 'hide'}
 # all response variables
 colnames(data[,c(2:9)])
-
-## substrate is combination of peat(peat,peatfree) and Yes(No-biochar,biochar)
-
-
-#used response variable
-colnames(data[,c(6,7,9)])
-
 #confounding: different greenhouses? + other?
 colnames(data[,c(3:4)])
 ```
 
-**Observational unit (is this the same for each response variable?):**
+**Observational unit (is this the same for each response variable?):** The curved strawberries per plant.
 
-**Experimental unit (is this the same for each response variable?):**
+
+**Experimental unit (is this the same for each response variable?):** Three trays of 5 plants.
 
 # Hypotheses
 Indicate all null & alternative hypotheses for your research question.
