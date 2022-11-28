@@ -43,8 +43,6 @@ library(dplyr)
 ```
 
 
-
-
 # Read Data
 
 ```{r results = 'hide'}
@@ -54,31 +52,15 @@ data <- read.delim("data/BASTA_Dataset2_Trichoderma.txt", header = TRUE, strings
 
 # Variables
 
-
 **Response variable(s):**  
 - weight of the curved strawberries per plant in kg: `r colnames(data[19])`
-
-```{r results = 'hide'}
-# all response variables
-colnames(data[,c(10:22)])
-#confounding: same effect on all strawberry forms? + other?
-colnames(data[,c(17:19)])
-```
 
 **Explanatory variable(s):**  
 - growing medium (peat and/or biochar): `r colnames(data[,c(6,7)])`
 - addition of *Trichoderma*: `r colnames(data[,c(9)])`
-
-
-```{r results = 'hide'}
-# all response variables
-colnames(data[,c(2:9)])
-#confounding: different greenhouses? + other?
-colnames(data[,c(3:4)])
-```
+- greenhouse: `r colnames(data[,c(3)])`
 
 **Observational unit (is this the same for each response variable?):** The curved strawberries per plant.
-
 
 **Experimental unit (is this the same for each response variable?):** Three trays of 5 plants.
 
@@ -125,22 +107,32 @@ curved_strawberry %>%
   geom_point(position=position_jitterdodge(),alpha=0.3) +
   theme_bw(base_size = 16)
 
-curved_strawberry<-data[,c(1,4:5,9,19)]
+curved_strawberry %>% 
+  ggplot(aes(x=Greenhouse,y=Curved_strawberries, fill=factor(Greenhouse))) +
+  geom_boxplot() + 
+  labs(fill = "Greenhouse") + 
+  geom_point(position=position_jitterdodge(),alpha=0.3) +
+  theme_bw(base_size = 16)
+
 curved_strawberry$Greenhouse <- factor(curved_strawberry$Greenhouse)
 curved_strawberry$Trichoderma <- factor(curved_strawberry$Trichoderma)
 curved_strawberry$Substrate <- factor(curved_strawberry$Substrate)
 
 summary(curved_strawberry)
-summary
 ```
 
 
 
-
-
-
 # Model selection and statisticial inference
-Based on the data exploration and the type of data, which model will you use and are the assumptions fulfilled? What can you do to improve the model? Fit this model and do statistical testing with the best possible model from what you have learned in the course.
+```{r}
+fit=lm(Curved_strawberries~Substrate+Trichoderma+Substrate:Trichoderma,data=curved_strawberry)
+par(mfrow=c(1,1))
+plot(fit)
+summary(fit)
+CIfit=confint(fit)
+CIfit
+```
+
 
 # Conclusion
 Write an appropriate conclusion as if you would publish these results in a scientific journal.
