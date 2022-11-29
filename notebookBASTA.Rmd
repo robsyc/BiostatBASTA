@@ -146,11 +146,9 @@ df %>%
   theme_bw()
 ```
 
-Due to the limited number of observations and large number of variables, trends in these plots should not be taken for granted and further statistical investigation will be performed.
+Due to the limited number of observations and the large number of variables, trends in these plots should not be taken for granted and further statistical investigation will be performed.
 
 # Model Selection & Statisticial Inference
-
-I've added this assumption checking part because I thought normality was a problem but performing log-transorm does not help :( A square root transformation seems to do somewhat better. I noticed there is a value 0 in our dataset (no curved strawberreis -> thus weight is 0) should be remove this? Since it is not really a data point I think.
 
 ## Assumption checking
 To check normality, histograms & QQ-plots are generated.
@@ -178,10 +176,10 @@ df %>%
 The data are not normally distributed with a tail to the right. A square root-transformation might help to make the data more normally distributed. The assumptions are re-evaluated.
 
 ```{r warning=FALSE}
-df_log <- df
-df_log$Curved_strawberries <- ((df_log$Curved_strawberries)^0.2)
+df_t <- df
+df_t$Curved_strawberries <- ((df_t$Curved_strawberries)^0.5)
 
-df_log %>% 
+df_t %>% 
   ggplot(aes(x = Curved_strawberries)) +
   geom_histogram(fill = "#D95C68") +
       labs(
@@ -189,7 +187,7 @@ df_log %>%
     x = "Curved strawberry weight per plant (kg)") + 
   theme_bw()
 
-df_log %>% 
+df_t %>% 
   ggplot(aes(sample = Curved_strawberries)) +
   stat_qq() +
   stat_qq_line(col = "#D95C68") +
@@ -220,6 +218,14 @@ CIfit
 ```
 
 There is not enough data to assess homoscedasticity for every variable combination. The QQ-plot of the residuals suggests that they are normally distributed, however, there are only a limited number of observations to assess normality. This should be kept in mind for further analysis.
+
+Linear model fit with only substrate as a explanatory variable:
+
+```{r}
+fit2 <- lm(Curved_strawberries ~ Substrate, data = df_t) 
+summary(fit2)
+```
+
 
 ```{r}
 strawberry_curved_log2 <- df
