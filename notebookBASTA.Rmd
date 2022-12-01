@@ -127,6 +127,36 @@ df %>%
     y = "Curved strawberry weight per plant (kg)") + 
   geom_jitter(width=0.2, alpha=0.3) +
   theme_bw()
+
+#Barchart to check the equality of variances
+df %>%
+  filter(Trichoderma %in% c("None","Trich1","Trich2","Trich3")) %>%
+  ggplot(aes(x = Substrate, y =Curved_strawberries,fill=Trichoderma)) +
+  geom_bar(stat="identity") + 
+       ggtitle("Interactive effect of the substrate and trichoderma addition on the weight of curved strawberries") +
+       labs(x = "Type of substrate",
+            y = "Weight of curved strawberries")+
+  theme(plot.title=element_text(hjust = 0.5), axis.text.x = element_text(angle = 60,hjust=1))
+
+df %>%
+  ggplot(aes(x = Substrate, y =Curved_strawberries,fill=Trichoderma)) + 
+       geom_bar(stat="identity")+
+  facet_wrap(~Trichoderma) + 
+       ggtitle("Interactive effect of the substrate and trichoderma addition on the weight of curved strawberries") +
+       labs(x = "Types of substrate (in combination with trichoderma)",
+            y = "Weight of curved strawberries")+
+  theme(plot.title=element_text(hjust = 0.5), axis.text.x = element_text(angle = 60,hjust=1))
+
+#qqplot, gives error but I don't know what to do ;)
+combo=levels(df$Substrate)
+par(mfrow=c(4,4))
+for (i in 1:16)
+  {
+  qqnorm(df$Curved_strawberries[df$Substrate==combo[i]],main=combo[i])
+  qqline(df$Curved_strawberries[df$Substrate==combo[i]])
+}
+par(mfrow=c(1,1))
+
 ```
 
 We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect.
