@@ -39,8 +39,8 @@ On average, is there an effect of growing medium and/or the addition of Trichode
 ## Load the libraries
 
 ```{r results = 'hide', warning = FALSE}
-library(ggplot2)
-library(dplyr)
+#library(ggplot2)
+#library(dplyr)
 library(multcomp)
 library(SummarizedExperiment)
 library(edgeR)
@@ -131,38 +131,19 @@ df %>%
   geom_jitter(width=0.2, alpha=0.3) +
   theme_bw()
 
-#Barchart to check the equality of variances
+# barchart to check the equality of variances
 df %>%
   filter(Trichoderma %in% c("None","Trich1","Trich2","Trich3")) %>%
-  ggplot(aes(x = Substrate, y =Curved_strawberries,fill=Trichoderma)) +
+  ggplot(aes(x=Substrate, y=Curved_strawberries, fill=Trichoderma)) +
   geom_bar(stat="identity") + 
-       ggtitle("Interactive effect of the substrate and trichoderma addition on the weight of curved strawberries") +
-       labs(x = "Type of substrate",
-            y = "Weight of curved strawberries")+
-  theme(plot.title=element_text(hjust = 0.5), axis.text.x = element_text(angle = 60,hjust=1))
-
-df %>%
-  ggplot(aes(x = Substrate, y =Curved_strawberries,fill=Trichoderma)) + 
-       geom_bar(stat="identity")+
-  facet_wrap(~Trichoderma) + 
-       ggtitle("Interactive effect of the substrate and trichoderma addition on the weight of curved strawberries") +
-       labs(x = "Types of substrate (in combination with trichoderma)",
-            y = "Weight of curved strawberries")+
-  theme(plot.title=element_text(hjust = 0.5), axis.text.x = element_text(angle = 60,hjust=1))
-
-#qqplot, gives error but I don't know what to do ;)
-combo=levels(df$Substrate)
-par(mfrow=c(4,4))
-for (i in 1:16)
-  {
-  qqnorm(df$Curved_strawberries[df$Substrate==combo[i]],main=combo[i])
-  qqline(df$Curved_strawberries[df$Substrate==combo[i]])
-}
-par(mfrow=c(1,1))
-
+       labs(
+         title="Interactive effect of the substrate and trichoderma addition\non the weight of curved strawberries",
+         x = "Type of substrate",
+         y = "Weight of curved strawberries") +
+  theme_bw()
 ```
 
-We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but shows difference in variance.
+We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but does show difference in variance.
 
 To investigate further, a plot was generated that distinguishes between the substrate choice & *Trichoderma* addition effects. This leads to believe that the effects of both explanatory variables are linked.
 
@@ -216,7 +197,7 @@ df_t %>%
   ggplot(aes(x = Curved_strawberries)) +
   geom_histogram(fill = "#D95C68") +
       labs(
-    title = "Normality confirmation of curved strawberry weight measures\nafter log2-transormation: Histogram", 
+    title = "Normality confirmation of curved strawberry weight measures\nafter square root-transormation: Histogram", 
     x = "Curved strawberry weight per plant (kg)") + 
   theme_bw()
 
@@ -231,8 +212,9 @@ df_t %>%
   theme_bw()
 ```
 
-Although homoscedasticity seems to be met (based on the previous boxplots), an additional sanity check is performed with Levene’s test (robust against normality violations).
+A square root transformation had a beneficial effect on the normality of the data. Backtranstransformation will have to be performed during model interpretation. *It was noticed however, that there is an observation where the weight of curved strawberries is zero. ...*
 
+Although homoscedasticity seems to be met (based on the previous boxplots), an additional sanity check is performed with Levene’s test (robust against normality violations). If the resulting p-value is greater than 0.05, the null-hypothesis cannot be rejected - meaning that sample variance is likely to have occurred based on random sampling from a population with equal variances.
 
 ```{r warning=FALSE}
 library(car)
@@ -241,13 +223,14 @@ leveneTest(Curved_strawberries ~ Substrate*Trichoderma, data = df_t)
 
 ## Model fitting
 
+A model is generated with substrate-choice, *Trichoderma*-addition, and an interaction variable between both as explanatory variables.
+
 ```{r}
 # set peatfree as intercept (peatfree is control soil)
 df_t <- within(df_t, Substrate <- relevel(Substrate, ref = "Peatfree"))
 
 fit = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, data = df_t)
 summary(fit)
-par(mfrow = c(1,1))
 plot(fit)
 
 CIfit = confint(fit)
