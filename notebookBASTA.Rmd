@@ -232,13 +232,13 @@ df_t <- within(df_t, Substrate <- relevel(Substrate, ref = "Peatfree"))
 fit = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, data = df_t)
 summary(fit)
 plot(fit)
-confint(fit)
 ```
 
 The assumptions and testing plots show good results but no 5% significance is obtained (p-value: 0.07216).
 
 ```{r}
 anova(fit)
+confint(fit)
 ```
 
 When performing anova, only a significant result can be obtained for the substrate as explanatory variable.
@@ -257,35 +257,73 @@ An overall p-value of 0.0442 for the model is obtained, indicating that substrat
 The greenhouse choice could be responsible for technical variation on the data. As the greenhouses can have a slightly different temperature, humidity, ... Therefore the greenhouse variable is incorporated in the model. (blocking)
 
 ```{r}
-fit3 = lm(Curved_strawberries ~ Substrate + Greenhouse, data = df_t)
+fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma + Greenhouse, data = df_t)
 summary(fit3)
+plot(fit3)
 ```
 
-The model produces slightly less significant results when incorporating the greenhouse choice as a parameter, but it is kept in the model in order to account for possible technical variation.
+The model produces less significant results when incorporating the greenhouse choice as a parameter, but it is kept in the model in order to account for possible technical variation.
 
 Further statistical testing and pairwise comparison is performed.
 
 ```{r}
 anova(fit3)
-fit3.mcp <- glht(fit3, linfct = mcp(Substrate = "Tukey"))
-summary(fit3.mcp)
-confint(fit3.mcp)
 ```
+
+
+```{r}
+# design
+X <- model.matrix(~ Substrate * Trichoderma, data = df_t)
+
+# pairwise comparisons against the control for H1 (2 methods)
+H1 <- msqrob2::makeContrast(c("SubstratePeat = 0", "SubstratePeatfree_Biochar= 0", "SubstratePeat_Biochar = 0"), parameterNames = colnames(X))
+testH1 <- glht(fit, linfct = t(H1))
+summary(testH1)
+confint(testH1)
+plot(testH1)
+
+print("H01: On average, the growing medium has no effect on the weight of the curved strawberries:")
+fit3S.mcp <- glht(fit3, linfct = mcp(Substrate = "Tukey"))
+summary(fit3S.mcp)
+confint(fit3S.mcp)
+plot(fit3S.mcp)
+```
+
+```{r}
+# pairwise comparisons against the control for H2 (2 methods)
+H2 <- msqrob2::makeContrast(c("TrichodermaTrich1 = 0", "TrichodermaTrich2= 0", "TrichodermaTrich3 = 0"), parameterNames = colnames(X))
+testH2 <- glht(fit, linfct = t(H2))
+summary(testH2)
+confint(testH2)
+plot(testH2)
+
+print("H02: On average, the addition of Trichoderma has no effect on the weight of the curved strawberries:")
+fit3T.mcp <- glht(fit3, linfct = mcp(Trichoderma = "Tukey"))
+summary(fit3T.mcp)
+confint(fit3T.mcp)
+plot(fit3T.mcp)
+```
+
+```{r}
+# pairwise comparisons against the control for H3 (1 method)
+H3 <- msqrob2::makeContrast(c("SubstratePeat:TrichodermaTrich1 = 0", "SubstratePeat_Biochar:TrichodermaTrich1 = 0",
+                              "SubstratePeatfree_Biochar:TrichodermaTrich1 = 0", "SubstratePeat:TrichodermaTrich2 = 0", 
+                              "SubstratePeat_Biochar:TrichodermaTrich2 = 0", "SubstratePeatfree_Biochar:TrichodermaTrich2 = 0", 
+                              "SubstratePeat:TrichodermaTrich3 = 0", "SubstratePeat_Biochar:TrichodermaTrich3 = 0", 
+                              "SubstratePeatfree_Biochar:TrichodermaTrich3 = 0"), parameterNames = colnames(X))
+testH3 <- glht(fit, linfct = t(H3))
+summary(testH3)
+confint(testH3)
+plot(testH3)
+```
+
+
 
 A significant result is only obtained for the pairwise comparison between biochar & biochar-peat substrates (p-value: 0.0259).
 
 The lack of significant findings could be due to a lack of power. A power analysis is performed...
 
 ---
-
-
-## Contrast matrix
-
-```{r}
-#Design
-X <- model.matrix(~Substrate*Trichoderma, data = df_t)
-```
-
 
 H01: On average, the growing medium has no effect on the weight of the curved strawberries. 
 
@@ -321,8 +359,7 @@ $$ \CS_weight\text{peatfree_vs_peatBiochar} =  \beta_\text{SubstratePeat_Biochar
 #peatfree_vs_Biochar
 #peatfree_vs_peatBiochar
 
-H1 <- msqrob2::makeContrast(c("SubstratePeat = 0","SubstratePeatfree_Biochar= 0",
-"SubstratePeat_Biochar = 0"),parameterNames = colnames(X))
+H1 <- msqrob2::makeContrast(c("SubstratePeat = 0", "SubstratePeatfree_Biochar= 0", "SubstratePeat_Biochar = 0"),parameterNames = colnames(X))
 testH1=glht(fit, linfct = t(H1))
 summary(testH1)
 
@@ -338,23 +375,6 @@ df[df$Trichoderma=="None",] %>%
   theme_bw()
 
 ```
-
-
-```{r}
-
-##H02: On average, the addition of *Trichoderma* has no effect on the weight of the curved strawberries.  
-#none_vs_trich1
-#none_vs_trich2
-#none_vs_trich3
-```
-
-
-```{r}
-
-##H03: The effect of *Trichoderma* addition on the weight of the curved strawberries does not differ for the different growth media.  
-#???
-```
-
 
 # Conclusion
 Write an appropriate conclusion as if you would publish these results in a scientific journal.
