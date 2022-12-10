@@ -41,10 +41,11 @@ On average, is there an effect of growing medium and/or the addition of Trichode
 ```{r results = 'hide', warning = FALSE}
 #library(ggplot2)
 #library(dplyr)
+library(tidyverse)
+library(car)
 library(multcomp)
 library(SummarizedExperiment)
 library(edgeR)
-library(tidyverse)
 ```
 
 
@@ -93,6 +94,7 @@ df <- data.frame(data[,c(1, 4:5, 9, 19)])
 df$Greenhouse <- factor(df$Greenhouse)
 df$Trichoderma <- factor(df$Trichoderma)
 df$Substrate <- factor(df$Substrate)
+df$SampleName <- factor(df$SampleName)
 
 head(df)
 summary(df)
@@ -103,47 +105,47 @@ Next, some basic plots are generated to provide an initial intuitive view on the
 ```{r}
 # plots effect of substrate choice
 df %>% 
-  ggplot(aes(x=Substrate, y=Curved_strawberries, fill=Substrate)) +
+  ggplot(aes(x = Substrate, y = Curved_strawberries, fill = Substrate)) +
   geom_boxplot() + 
   labs(
     title = "Effect of substrate choice on the weight of curved strawberries", 
     y = "Curved strawberry weight per plant (kg)") + 
-  geom_jitter(width=0.2, alpha=0.3) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
   theme_bw()
 
 # plots effect of Trichoderma addition
 df %>% 
-  ggplot(aes(x=Trichoderma, y=Curved_strawberries, fill=Trichoderma)) +
+  ggplot(aes(x = Trichoderma, y = Curved_strawberries, fill = Trichoderma)) +
   geom_boxplot() + 
   labs(
     title = "Effect of Trichoderma addition on the weight of curved strawberries", 
     y = "Curved strawberry weight per plant (kg)") + 
-  geom_jitter(width=0.2, alpha=0.3) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
   theme_bw()
 
 # plots effect of greenhouse choice
 df %>% 
-  ggplot(aes(x=Greenhouse, y=Curved_strawberries, fill=Greenhouse)) +
+  ggplot(aes(x = Greenhouse, y = Curved_strawberries, fill = Greenhouse)) +
   geom_boxplot() + 
   labs(
     title = "Effect of greenhouse choice on the weight of curved strawberries", 
     y = "Curved strawberry weight per plant (kg)") + 
-  geom_jitter(width=0.2, alpha=0.3) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
   theme_bw()
 
-# barchart to check the equality of variances
+# bar chart to check for possible interactivity between variables
 df %>%
   filter(Trichoderma %in% c("None","Trich1","Trich2","Trich3")) %>%
-  ggplot(aes(x=Substrate, y=Curved_strawberries, fill=Trichoderma)) +
-  geom_bar(stat="identity") + 
+  ggplot(aes(x = Substrate, y = Curved_strawberries, fill = Trichoderma)) +
+  geom_bar(stat = "identity") + 
        labs(
-         title="Interactive effect of the substrate and trichoderma addition\non the weight of curved strawberries",
+         title = "Interactive effect of the substrate and trichoderma addition\non the weight of curved strawberries",
          x = "Type of substrate",
          y = "Weight of curved strawberries") +
   theme_bw()
 ```
 
-We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but does show difference in variance.
+We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but a slightly higher variance can be observed for greenhouse 1.
 
 To investigate further, a plot was generated that distinguishes between the substrate choice & *Trichoderma* addition effects. This leads to believe that the effects of both explanatory variables are linked.
 
@@ -151,12 +153,12 @@ To investigate further, a plot was generated that distinguishes between the subs
 # plots effect of substrate choice & Trichoderma addition
 df %>% 
   filter(Trichoderma %in% c("None","Trich1","Trich2","Trich3")) %>%
-  ggplot(aes(x=Substrate, y=Curved_strawberries, fill=Trichoderma)) +
+  ggplot(aes(x = Substrate, y = Curved_strawberries, fill = Trichoderma)) +
   geom_boxplot() + 
     labs(
     title = "Effect of substrate choice & Trichoderma addition\non the weight of curved strawberries", 
     y = "Curved strawberry weight per plant (kg)") + 
-  geom_jitter(width=0.2, alpha=0.3) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
   theme_bw()
 ```
 
@@ -187,7 +189,7 @@ df %>%
   theme_bw()
 ```
 
-The data are not normally distributed with a tail to the right. A square root-transformation might help to make the data more normally distributed. The assumptions are re-evaluated.
+The data are not normally distributed, has a lower bound of zero, and a tail to the right can be observed. A square root-transformation might help to make the data more normally distributed. The assumptions are re-evaluated.
 
 ```{r warning=FALSE}
 df_t <- df
@@ -212,12 +214,11 @@ df_t %>%
   theme_bw()
 ```
 
-A square root transformation had a beneficial effect on the normality of the data. Backtranstransformation will have to be performed during model interpretation. *It was noticed however, that there is an observation where the weight of curved strawberries is zero. ...*
+A square root transformation has a beneficial effect on the normality of the data, the departures from normality are also symmetric. Back-transformation will have to be performed during model interpretation. *It was noticed however, that there is an observation where the weight of curved strawberries is zero. -> meaningful observation?...*
 
-Although homoscedasticity seems to be met (based on the previous boxplots), an additional sanity check is performed with Levene’s test (robust against normality violations). If the resulting p-value is greater than 0.05, the null-hypothesis cannot be rejected - meaning that sample variance is likely to have occurred based on random sampling from a population with equal variances.
+Although homoscedasticity seems to be met (based on the previously shown box plots), an additional sanity check is performed with Levene’s test (which is robust against normality violations). If the resulting p-value is greater than 0.05, the null-hypothesis cannot be rejected - meaning that sample variance is likely to have occurred based on random sampling from a population with equal variances.
 
 ```{r warning=FALSE}
-library(car)
 leveneTest(Curved_strawberries ~ interaction(Substrate, Trichoderma), data = df_t)
 ```
 
@@ -229,45 +230,55 @@ A model is generated with substrate-choice, *Trichoderma*-addition, and an inter
 # set peatfree as intercept (peatfree is control soil)
 df_t <- within(df_t, Substrate <- relevel(Substrate, ref = "Peatfree"))
 
-fit = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, data = df_t)
-summary(fit)
-plot(fit)
+fit1 = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, data = df_t)
+summary(fit1)
+plot(fit1)
 ```
 
-The assumptions and testing plots show good results but no 5% significance is obtained (p-value: 0.07216).
+The assumptions and testing plots show good results but no 5% significance is obtained for the overall model (p-value: 0.07216). Analysis of variance (ANOVA) is performed to check which variables best explain the variance present in the data.
 
 ```{r}
-anova(fit)
-confint(fit)
+anova(fit1)
 ```
 
-When performing anova, only a significant result can be obtained for the substrate as explanatory variable.
+When performing anova, only a significant result can be obtained for substrate as explanatory variable.
 
-Linear model fit with only substrate as a explanatory variable:
+Linear model fit with only substrate as explanatory variable:
 
 ```{r}
 fit2 <- lm(Curved_strawberries ~ Substrate, data = df_t)
 summary(fit2)
 ```
 
-An overall p-value of 0.0442 for the model is obtained, indicating that substrate is indeed the primary driver of curved strawberry weight differences.
+An overall p-value of 0.0442 for the model is obtained, indicating that substrate is indeed the primary driver of curved strawberry weight differences. Additionaly, the variance inflation factor (VIF) for the first fit can indicate whether there is multicollinearity between two or more variables.
+
+```{r, warning=FALSE}
+vif(fit1, type = "predictor")
+```
+
+The GVIF values (generalized VIF) indicate there is no correlation between the predictor variables in the model, therefore, all variables of fit1 are kept in the final model.
 
 ### Blocking
 
-The greenhouse choice could be responsible for technical variation on the data. As the greenhouses can have a slightly different temperature, humidity, ... Therefore the greenhouse variable is incorporated in the model. (blocking)
+The greenhouse choice could be responsible for technical variation present in the data. As the greenhouses can have a slightly different temperature, humidity, ... Therefore, the greenhouse variable is incorporated in the model. (blocking)
 
 ```{r}
-fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma + Greenhouse, data = df_t)
+fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma, data = df_t)
 summary(fit3)
 plot(fit3)
 ```
 
-The model produces less significant results when incorporating the greenhouse choice as a parameter, but it is kept in the model in order to account for possible technical variation.
+The model produces less significant results when incorporating the greenhouse choice as a parameter (p-value: 0.09714 vs. 0.07216), but it is kept in the model in order to account for possible technical variation.
 
 Further statistical testing and pairwise comparison is performed.
 
 ```{r}
 anova(fit3)
+```
+
+```{r}
+# this is how it is performed in practical session 1 exercise 2
+tukey1 = glht(fit3, linfct = mcp(Substrate = "Tukey"))
 ```
 
 
@@ -277,16 +288,16 @@ X <- model.matrix(~ Substrate * Trichoderma, data = df_t)
 
 # pairwise comparisons against the control for H1 (2 methods)
 H1 <- msqrob2::makeContrast(c("SubstratePeat = 0", "SubstratePeatfree_Biochar= 0", "SubstratePeat_Biochar = 0"), parameterNames = colnames(X))
-testH1 <- glht(fit, linfct = t(H1))
+testH1 <- glht(fit3, linfct = t(H1))
 summary(testH1)
 confint(testH1)
 plot(testH1)
 
-print("H01: On average, the growing medium has no effect on the weight of the curved strawberries:")
-fit3S.mcp <- glht(fit3, linfct = mcp(Substrate = "Tukey"))
-summary(fit3S.mcp)
-confint(fit3S.mcp)
-plot(fit3S.mcp)
+#print("H01: On average, the growing medium has no effect on the weight of the curved strawberries:")
+#fit3S.mcp <- glht(fit3, linfct = mcp(Substrate = "Tukey"))
+#summary(fit3S.mcp)
+#confint(fit3S.mcp)
+#plot(fit3S.mcp)
 ```
 
 ```{r}
@@ -297,11 +308,11 @@ summary(testH2)
 confint(testH2)
 plot(testH2)
 
-print("H02: On average, the addition of Trichoderma has no effect on the weight of the curved strawberries:")
-fit3T.mcp <- glht(fit3, linfct = mcp(Trichoderma = "Tukey"))
-summary(fit3T.mcp)
-confint(fit3T.mcp)
-plot(fit3T.mcp)
+#print("H02: On average, the addition of Trichoderma has no effect on the weight of the curved strawberries:")
+#fit3T.mcp <- glht(fit3, linfct = mcp(Trichoderma = "Tukey"))
+#summary(fit3T.mcp)
+#confint(fit3T.mcp)
+#plot(fit3T.mcp)
 ```
 
 ```{r}
