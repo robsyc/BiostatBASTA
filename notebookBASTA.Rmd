@@ -59,17 +59,19 @@ head(data)
 # Research Investigation
 ## Variables
 
-**Response variable:**  
-- weight of the curved strawberries per plant in kg: `r colnames(data[19])`
+**Response variable:** 
+The weight of the curved strawberries: `r colnames(data[19])`
 
 **Explanatory variable(s):**  
-- growing medium (peat and/or biochar): `r colnames(data[5])`
-- addition of *Trichoderma*: `r colnames(data[9])`
-- greenhouse: `r colnames(data[3])`
+- Growing medium (peat and/or biochar): `r colnames(data[5])`
+- Addition of *Trichoderma*: `r colnames(data[9])`
+- Greenhouse: `r colnames(data[3])`
 
-**Observational unit:** The curved strawberries per plant.
+**Observational unit:** 
+The strawberry plant.
 
-**Experimental unit:** Three trays of 5 plants.
+**Experimental unit:** 
+Three trays of 5 plants.
 
 ## Hypotheses
 
@@ -145,7 +147,7 @@ df %>%
   theme_bw()
 ```
 
-We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but a slightly higher variance can be observed for greenhouse 1.
+We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but a slightly higher variance can be observed for greenhouse 1. There seems to be no equality of variances between the 16 different combinations upon viewing the height of the barcharts from any of the frames generated.
 
 To investigate further, a plot was generated that distinguishes between the substrate choice & *Trichoderma* addition effects. This leads to believe that the effects of both explanatory variables are linked.
 
@@ -263,7 +265,7 @@ The GVIF values (generalized VIF) indicate there is no correlation between the p
 The greenhouse choice could be responsible for technical variation present in the data. As the greenhouses can have a slightly different temperature, humidity, ... Therefore, the greenhouse variable is incorporated in the model. (blocking)
 
 ```{r}
-fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma, data = df_t)
+fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse+ Substrate:Trichoderma, data = df_t)
 summary(fit3)
 plot(fit3)
 ```
@@ -276,13 +278,23 @@ Further statistical testing and pairwise comparison is performed.
 anova(fit3)
 ```
 
-```{r}
-# this is how it is performed in practical session 1 exercise 2
-tukey1 = glht(fit3, linfct = mcp(Substrate = "Tukey"))
+
+```{r, warning=FALSE}
+vif(fit3, type = "predictor")
 ```
 
+The GVIF values are close to 1, indicating that there is no correlation between any explanatory variables after adding the greenhouse variable.
 
 ```{r}
+# this is how it is performed in practical session 1 exercise 2 (mss weglaten???)
+tukey1 = glht(fit3, linfct = mcp(Substrate = "Tukey"))
+tukey1
+```
+
+Due to the presence of covariate interactions, a post hoc Tukey test can't be performed. Instead, we use a matrix model to study the effect on the weight of the curved strawberries between the used substrates.
+
+```{r}
+BiocManager::install("msqrob2")
 # design
 X <- model.matrix(~ Substrate * Trichoderma, data = df_t)
 
@@ -332,7 +344,18 @@ plot(testH3)
 
 A significant result is only obtained for the pairwise comparison between biochar & biochar-peat substrates (p-value: 0.0259).
 
-The lack of significant findings could be due to a lack of power. A power analysis is performed...
+The lack of significant findings could be due to a lack of power. A power analysis is performed
+```{r}
+pwr.f2.test(u=4,v=64-4-1,f2=0.1384/(1-0.1384),sig.level = 0.05, power = NULL)
+```
+
+The power of our lineair model is 69%. This indicates that there is a 69% probability of not making a type 2 error. This could be improved by repeating the experiment with more samples. Next, we determine the amount of samples should be taken to improve our model to 80%.
+
+```{r}
+pwr.f2.test(u=4,v=NULL, f2=0.1384/(1-0.1384), sig.level=0.05, power=0.8)
+```
+
+To improve the power of our model to 80%, at least 80 samples would have to be taken.
 
 ---
 
