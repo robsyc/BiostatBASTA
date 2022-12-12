@@ -147,7 +147,7 @@ df %>%
   theme_bw()
 ```
 
-We can see that substrate choice (and to a lesser extent *Trichoderma* addition) seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but a slightly higher variance can be observed for greenhouse 1. There seems to be no equality of variances between the 16 different combinations upon viewing the height of the barcharts from any of the frames generated.
+At first sight We can see that substrate choice (and to a lesser extent *Trichoderma* addition) on average seems to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect but a slightly higher variance can be observed for greenhouse 1. There seems to be no equality of variances (heteroscedasticity) between the 16 different combinations upon viewing the height of the barcharts from any of the frames generated.
 
 To investigate further, a plot was generated that distinguishes between the substrate choice & *Trichoderma* addition effects. This leads to believe that the effects of both explanatory variables are linked.
 
