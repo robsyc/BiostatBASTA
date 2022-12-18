@@ -216,7 +216,7 @@ df_t %>%
   theme_bw()
 ```
 
-A square root transformation has a beneficial effect on the normality of the data, the departures from normality are also symmetric. Back-transformation will have to be performed during model interpretation. *It was noticed however, that there is an observation where the weight of curved strawberries is zero. -> meaningful observation?...*
+A square root transformation has a beneficial effect on the normality of the data, the departures from normality are also symmetric. Back-transformation will have to be performed during model interpretation. *It was noticed however, that there is an observation where the weight of curved strawberries is zero. This value doesn't hinder further analysis and is still taken into account.
 
 Although homoscedasticity seems to be met (based on the previously shown box plots), an additional sanity check is performed with Levene’s test (which is robust against normality violations). If the resulting p-value is greater than 0.05, the null-hypothesis cannot be rejected - meaning that sample variance is likely to have occurred based on random sampling from a population with equal variances.
 
@@ -258,6 +258,7 @@ An overall p-value of 0.0442 for the model is obtained, indicating that substrat
 
 ```{r, warning=FALSE}
 vif(fit1, type = "predictor")
+
 ```
 
 The GVIF values (generalized VIF) indicate there is no correlation between the predictor variables in the model, therefore, all variables of fit1 are kept in the final model.
@@ -267,19 +268,14 @@ The GVIF values (generalized VIF) indicate there is no correlation between the p
 The greenhouse choice could be responsible for technical variation present in the data. As the greenhouses can have a slightly different temperature, humidity, ... Therefore, the greenhouse variable is incorporated in the model. (blocking)
 
 ```{r}
-fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse+ Substrate:Trichoderma, data = df_t)
+fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma , data = df_t)
 summary(fit3)
 plot(fit3)
 ```
 
 The model produces less significant results when incorporating the greenhouse choice as a parameter (p-value: 0.09714 vs. 0.07216), but it is kept in the model in order to account for possible technical variation.
 
-Further statistical testing and pairwise comparison is performed.
-
-```{r}
-anova(fit3)
-```
-
+Further statistical testing and pairwise comparison is performed, although the model isn't significant.
 
 ```{r, warning=FALSE}
 vif(fit3, type = "predictor")
@@ -288,14 +284,24 @@ vif(fit3, type = "predictor")
 The GVIF values are close to 1, indicating that there is no correlation between any explanatory variables after adding the greenhouse variable.
 
 ```{r}
-# this is how it is performed in practical session 1 exercise 2 (mss weglaten???)
-tukey1 = glht(fit3, linfct = mcp(Substrate = "Tukey"))
-tukey1
+anova_fit3 <- aov(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma , data = df_t)
+summary(anova_fit3)
 ```
 
-Due to the presence of covariate interactions, a post hoc Tukey test can't be performed. Instead, we use a matrix model to study the effect on the weight of the curved strawberries between the used substrates.
+Performing an ANOVA test, there can be seen that there is only a significant difference between the different substrates. A Tukey post-hoc analysis is performed to mutual compare the different substrates. 
 
 ```{r}
+# this is how it is performed in practical session 1 exercise 2 (mss weglaten???)
+Tukey_fit3 <- TukeyHSD(anova_fit3, which = "Substrate")
+Tukey_fit3
+
+```
+
+It can be concluded that only a significant difference in number of curved strawberries can be found when comparing peatfree substrate with biochar and substrate with peat and biochar (p-value = 0,021). 
+
+
+```{r}
+# Ik denk dat dit allemaal weg mag???
 BiocManager::install("msqrob2")
 # design
 X <- model.matrix(~ Substrate * Trichoderma, data = df_t)
@@ -342,9 +348,14 @@ confint(testH3)
 plot(testH3)
 ```
 
-
-
-A significant result is only obtained for the pairwise comparison between biochar & biochar-peat substrates (p-value: 0.0259).
+```{r}
+#Interpretation on original scale
+sqroot <- summary(fit3)
+(sqroot$coefficients)^2
+(confint(fit3))^2
+# Ik weet niet hoe de waarden van de Tukey terug te transformeren. Mss gaat dit niet?
+(Tukey_fit3$diff)^2
+```
 
 The lack of significant findings could be due to a lack of power. A power analysis is performed
 ```{r}
@@ -358,6 +369,7 @@ pwr.f2.test(u=4,v=NULL, f2=0.1384/(1-0.1384), sig.level=0.05, power=0.8)
 ```
 
 To improve the power of our model to 80%, at least 80 samples would have to be taken.
+
 
 ---
 
