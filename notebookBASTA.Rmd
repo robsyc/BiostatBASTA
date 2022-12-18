@@ -253,6 +253,7 @@ summary(fit2)
 plot(fit2)
 ```
 
+The assumptions and testing plots show no normality.
 An overall p-value of 0.0442 for the model is obtained, indicating that substrate is indeed the primary driver of curved strawberry weight differences. Additionaly, the variance inflation factor (VIF) for the first fit can indicate whether there is multicollinearity between two or more variables.
 
 ```{r, warning=FALSE}
