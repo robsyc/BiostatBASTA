@@ -46,6 +46,7 @@ library(car)
 library(multcomp)
 library(SummarizedExperiment)
 library(edgeR)
+library(pwr)
 ```
 
 
@@ -63,7 +64,7 @@ head(data)
 The weight of the curved strawberries: `r colnames(data[19])`
 
 **Explanatory variable(s):**  
-- Growing medium (peat and/or biochar): `r colnames(data[5])`
+- Growing medium (peat/non-peat and biochar/ no biochar): `r colnames(data[5])`
 - Addition of *Trichoderma*: `r colnames(data[9])`
 - Greenhouse: `r colnames(data[3])`
 
@@ -237,6 +238,7 @@ summary(fit1)
 plot(fit1)
 ```
 
+
 The assumptions and testing plots show good results but no 5% significance is obtained for the overall model (p-value: 0.07216). Analysis of variance (ANOVA) is performed to check which variables best explain the variance present in the data.
 
 ```{r}
@@ -244,6 +246,15 @@ anova(fit1)
 ```
 
 When performing anova, only a significant result can be obtained for substrate as explanatory variable.
+
+Additionaly, the variance inflation factor (VIF) for the fit1 can indicate whether there is multicollinearity between two or more variables.
+
+```{r, warning=FALSE}
+vif(fit1, type = "predictor")
+
+```
+
+The GVIF values (generalized VIF) indicate there is no correlation between the predictor variables in the model, therefore, all variables of fit1 are kept in the final model.
 
 Linear model fit with only substrate as explanatory variable:
 
@@ -253,27 +264,20 @@ summary(fit2)
 plot(fit2)
 ```
 
-The assumptions and testing plots show no normality.
-An overall p-value of 0.0442 for the model is obtained, indicating that substrate is indeed the primary driver of curved strawberry weight differences. Additionaly, the variance inflation factor (VIF) for the first fit can indicate whether there is multicollinearity between two or more variables.
-
-```{r, warning=FALSE}
-vif(fit1, type = "predictor")
-
-```
-
-The GVIF values (generalized VIF) indicate there is no correlation between the predictor variables in the model, therefore, all variables of fit1 are kept in the final model.
+The assumptions and testing plots show normality.
+An overall p-value of 0.0442 for the model is obtained, indicating that substrate is indeed the primary driver of curved strawberry weight differences. 
 
 ### Blocking
 
 The greenhouse choice could be responsible for technical variation present in the data. As the greenhouses can have a slightly different temperature, humidity, ... Therefore, the greenhouse variable is incorporated in the model. (blocking)
 
 ```{r}
-fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma , data = df_t)
+fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma, data = df_t)
 summary(fit3)
 plot(fit3)
 ```
 
-The model produces less significant results when incorporating the greenhouse choice as a parameter (p-value: 0.09714 vs. 0.07216), but it is kept in the model in order to account for possible technical variation.
+The model produces less significant results when incorporating the greenhouse choice as a parameter,(p-value: 0.09714 vs. 0.07216) but it is kept in the model in order to account for possible technical variation.
 
 Further statistical testing and pairwise comparison is performed, although the model isn't significant.
 
@@ -297,56 +301,8 @@ Tukey_fit3
 
 ```
 
-It can be concluded that only a significant difference in number of curved strawberries can be found when comparing peatfree substrate with biochar and substrate with peat and biochar (p-value = 0,021). 
+It can be concluded that only a significant difference in weight of curved strawberries can be found when comparing peatfree substrate with biochar and substrate with peat and biochar (p-value = 0,021). 
 
-
-```{r}
-# Ik denk dat dit allemaal weg mag???
-BiocManager::install("msqrob2")
-# design
-X <- model.matrix(~ Substrate * Trichoderma, data = df_t)
-
-# pairwise comparisons against the control for H1 (2 methods)
-H1 <- msqrob2::makeContrast(c("SubstratePeat = 0", "SubstratePeatfree_Biochar= 0", "SubstratePeat_Biochar = 0"), parameterNames = colnames(X))
-testH1 <- glht(fit3, linfct = t(H1))
-summary(testH1)
-confint(testH1)
-plot(testH1)
-
-#print("H01: On average, the growing medium has no effect on the weight of the curved strawberries:")
-#fit3S.mcp <- glht(fit3, linfct = mcp(Substrate = "Tukey"))
-#summary(fit3S.mcp)
-#confint(fit3S.mcp)
-#plot(fit3S.mcp)
-```
-
-```{r}
-# pairwise comparisons against the control for H2 (2 methods)
-H2 <- msqrob2::makeContrast(c("TrichodermaTrich1 = 0", "TrichodermaTrich2= 0", "TrichodermaTrich3 = 0"), parameterNames = colnames(X))
-testH2 <- glht(fit, linfct = t(H2))
-summary(testH2)
-confint(testH2)
-plot(testH2)
-
-#print("H02: On average, the addition of Trichoderma has no effect on the weight of the curved strawberries:")
-#fit3T.mcp <- glht(fit3, linfct = mcp(Trichoderma = "Tukey"))
-#summary(fit3T.mcp)
-#confint(fit3T.mcp)
-#plot(fit3T.mcp)
-```
-
-```{r}
-# pairwise comparisons against the control for H3 (1 method)
-H3 <- msqrob2::makeContrast(c("SubstratePeat:TrichodermaTrich1 = 0", "SubstratePeat_Biochar:TrichodermaTrich1 = 0",
-                              "SubstratePeatfree_Biochar:TrichodermaTrich1 = 0", "SubstratePeat:TrichodermaTrich2 = 0", 
-                              "SubstratePeat_Biochar:TrichodermaTrich2 = 0", "SubstratePeatfree_Biochar:TrichodermaTrich2 = 0", 
-                              "SubstratePeat:TrichodermaTrich3 = 0", "SubstratePeat_Biochar:TrichodermaTrich3 = 0", 
-                              "SubstratePeatfree_Biochar:TrichodermaTrich3 = 0"), parameterNames = colnames(X))
-testH3 <- glht(fit, linfct = t(H3))
-summary(testH3)
-confint(testH3)
-plot(testH3)
-```
 
 ```{r}
 #Interpretation on original scale
@@ -370,61 +326,9 @@ pwr.f2.test(u=4,v=NULL, f2=0.1384/(1-0.1384), sig.level=0.05, power=0.8)
 
 To improve the power of our model to 80%, at least 80 samples would have to be taken.
 
-
----
-
-H01: On average, the growing medium has no effect on the weight of the curved strawberries. 
-
-peatfree_vs_peat
-
-$$ \CS_weight\text{peatfree} = \beta_text{0} $$
-
-$$ \CS_weight\text{peat} = \beta_text{0}  + \beta_\text{SubstratePeat} $$
-
-$$ \CS_weight\text{peatfree_vs_peat} =  \beta_\text{SubstratePeat} = 0 $$
-
-
-peatfree_vs_Biochar
-
-$$ \CS_weight\text{peatfree} = \beta_text{0} $$
-
-$$ \CS_weight\text{Biochar} = \beta_text{0}  + \beta_\text{SubstratePeatfree_Biochar} $$
-
-$$ \CS_weight\text{peatfree_vs_peatfreeBiochar} =  \beta_\text{SubstratePeatfree_Biochar} = 0 $$
-
-peatfree_vs_peatBiochar
-
-$$ \CS_weight\text{peatfree} = \beta_text{0} $$
-
-$$ \CS_weight\text{Peat_Biochar} = \beta_text{0}  + \beta_\text{SubstratePeat_Biochar} $$
-
-$$ \CS_weight\text{peatfree_vs_peatBiochar} =  \beta_\text{SubstratePeat_Biochar} = 0 $$
-
-
-```{r}
-## H01: On average, the growing medium has no effect on the weight of the curved strawberries. 
-#peatfree_vs_peat
-#peatfree_vs_Biochar
-#peatfree_vs_peatBiochar
-
-H1 <- msqrob2::makeContrast(c("SubstratePeat = 0", "SubstratePeatfree_Biochar= 0", "SubstratePeat_Biochar = 0"),parameterNames = colnames(X))
-testH1=glht(fit, linfct = t(H1))
-summary(testH1)
-
-# probleem, enkel data met trich = None via deze contrast
-
-df[df$Trichoderma=="None",] %>% 
-  ggplot(aes(x=Substrate, y=Curved_strawberries, fill=Substrate)) +
-  geom_boxplot() + 
-  labs(
-    title = "Effect of substrate choice on the weight of curved strawberries", 
-    y = "Curved strawberry weight per plant (kg)") + 
-  geom_jitter(width=0.2, alpha=0.3) +
-  theme_bw()
-
-```
-
 # Conclusion
-Write an appropriate conclusion as if you would publish these results in a scientific journal.
+From our lineair model ()
+
+
 
 The project needs to be handed in by Friday 23/12. Hand in an HTML file containing all your code + conclusions. The file should be saved as ProjectBiostatistics_Member1_Member2_Member3_Member4.
