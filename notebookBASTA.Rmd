@@ -1,9 +1,19 @@
-<<<<<<< HEAD
 ---
-title: "Biostatistics project - Group 25"
-author: "Emma Van Kerckhove, Kylian Baeyens, Robbe Claeys, Tom Nissens"
-date: "`r Sys.Date()`"
-output: html_document
+title: 'Biostatistics project - Group 25'
+author: 'Emma Van Kerckhove, Kylian Baeyens, Robbe Claeys, Tom Nissens'
+date: 2022-2023
+output:
+  html_document:
+    df_print: paged
+    toc: true
+  pdf_document:
+    dev: png
+    toc: true
+header-includes: \setlength{\emergencystretch}{3em}
+---
+
+
+
 ---
 
 # BASTA strawberry trial 2022
@@ -38,7 +48,7 @@ On average, is there an effect of growing medium and/or the addition of Trichode
 # Data Preparation
 ## Load the libraries
 
-```{r results = 'hide', warning = FALSE}
+```{r results = FALSE, warning = FALSE, message=FALSE}
 #library(ggplot2)
 #library(dplyr)
 library(tidyverse)
@@ -194,7 +204,7 @@ df %>%
 
 The data are not normally distributed, has a lower bound of zero, and a tail to the right can be observed. A square root-transformation might help to make the data more normally distributed. The assumptions are re-evaluated.
 
-```{r warning=FALSE}
+```{r warning=FALSE, message=FALSE}
 df_t <- df
 df_t$Curved_strawberries <- ((df_t$Curved_strawberries)^0.5)
 
@@ -309,8 +319,6 @@ It can be concluded that only a significant difference in weight of curved straw
 sqroot <- summary(fit3)
 (sqroot$coefficients)^2
 (confint(fit3))^2
-# Ik weet niet hoe de waarden van de Tukey terug te transformeren. Mss gaat dit niet?
-(Tukey_fit3$diff)^2
 ```
 
 The lack of significant findings could be due to a lack of power. A power analysis is performed
@@ -329,11 +337,9 @@ To improve the power of our model to 80%, at least 80 samples would have to be t
 # Conclusion
 
 No lineair model could be found that showed significant results when accounting for the greenhouse choice. The assumptions were met (normality, homoscedascity, linearity) to use a lineair model. A linear model could be made with the substrate and trichoderma as explanatory variables, greenhouse blocking and an  substrate-trichoderma interaction. Although the model was not significant (p = 0,09714) further statistical testing was performed. A performed variance inflation factor indicated no correlation between any of the explanatory variables when greenhouse blocking was applied.
+
 An ANOVA test indicated that there are only significant differences in the weight of curved strawberries between different substrates. Further analysis with a Tukey post-hoc test compared the effect between the different substrates. The analysis indicated that a significant difference in the weight of the curved strawberries can be found when comparing peatfree substrate with biochar and substrate containing peat and biochar (p = 0,021). This difference in average weight of the curved strawberries when using peatfree substrate with biochar or substrate containing peat with biochar is 1.094803e-05, which is very small.
 
 The lack of significant findings such as insignificant linear models could be due to a lack of power. A power analysis indicated that our linear model has a power of 69%, this could be improved by repeating the experiment with more samples.
 The power analysis also indicated that the power of our model could be increased to 80% by at least taking 80 samples during the next experiment.
 
-
-
-The project needs to be handed in by Friday 23/12. Hand in an HTML file containing all your code + conclusions. The file should be saved as ProjectBiostatistics_Member1_Member2_Member3_Member4.
