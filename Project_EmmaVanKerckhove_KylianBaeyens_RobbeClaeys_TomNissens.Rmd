@@ -95,11 +95,11 @@ Three trays of 5 plants.
 
 
 
-*Ha1*: On average, the growing medium has an effect on the weight of the curved strawberries.  
+**Ha1**: On average, the growing medium has an effect on the weight of the curved strawberries.  
 
-*Ha2*: On average, the addition of *Trichoderma* has an effect on the weight of the curved strawberries.  
+**Ha2**: On average, the addition of *Trichoderma* has an effect on the weight of the curved strawberries.  
 
-*Ha3*: The effect of *Trichoderma* addition on the weight of the curved strawberries differs for the different growth media.  
+**Ha3**: The effect of *Trichoderma* addition on the weight of the curved strawberries differs for the different growth media.  
 
 # Data Exploration
 First we filter the data, generate an appropriate format, and provide some basic statistics.
@@ -109,7 +109,6 @@ df <- data.frame(data[,c(1, 4:5, 9, 19)])
 df$Greenhouse <- factor(df$Greenhouse)
 df$Trichoderma <- factor(df$Trichoderma)
 df$Substrate <- factor(df$Substrate)
-df$SampleName <- factor(df$SampleName)
 
 head(df)
 summary(df)
@@ -160,7 +159,7 @@ df %>%
   theme_bw()
 ```
 
-At first sight, we can see that substrate choice (and to a lesser extent *Trichoderma* addition) on average seem to have an effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect, but a slightly higher variance can be observed for greenhouse 1. There seems to be no equality of variances (heteroscedasticity) between the 16 different combinations upon viewing the height of the barcharts from any of the frames generated.
+At first sight, we can see that substrate choice (and to a lesser extent *Trichoderma* addition) on average seem to have a effect on the weight of curved strawberries. The choice of greenhouse, however, does not seem to have an effect, but a slightly higher variance can be observed for greenhouse 1. There seems to be no equality of variances (heteroscedasticity) between the 16 different combinations upon viewing the height of the barcharts from any of the frames generated.
 
 To investigate further, a plot was generated that distinguishes between the substrate choice & *Trichoderma* addition effects. This leads to believe that the effects of both explanatory variables are linked.
 
@@ -229,12 +228,17 @@ df_t %>%
   theme_bw()
 ```
 
-A square root transformation has a beneficial effect on the normality of the data, the departures from normality are also symmetric. Back-transformation will have to be performed during model interpretation. It was noticed however, that there is an observation where the weight of curved strawberries is zero. This value doesn't hinder further analysis and is still taken into account.
+A square root transformation has a beneficial effect on the normality of the data, the departures from normality are also symmetric. 
+Back-transformation will have to be performed during model interpretation. It was noticed however, that there is an observation where the weight of curved strawberries is zero. 
+This value doesn't hinder further analysis and is still taken into account.
 
-Although homoscedasticity seems to be met (based on the previously shown box plots), an additional sanity check is performed with Levene’s test (which is robust against normality violations). If the resulting p-value is greater than 0.05, the null-hypothesis cannot be rejected - meaning that sample variance is likely to have occurred based on random sampling from a population with equal variances.
+Although homoscedasticity seems to be met (based on the previously shown box plots), an additional sanity check is performed with Levene’s test (which is robust against normality violations). 
+If the resulting p-value is greater than 0.05, the null-hypothesis cannot be rejected - meaning that sample variance is likely to have occurred based on random sampling from a population with equal variances.
 
 ```{r warning=FALSE}
-leveneTest(Curved_strawberries ~ interaction(Substrate, Trichoderma), data = df_t)
+leveneTest(
+  Curved_strawberries ~ interaction(Substrate, Trichoderma), 
+  data = df_t)
 ```
 
 ## Model fitting
@@ -245,13 +249,17 @@ A model is generated with substrate-choice, *Trichoderma*-addition, and an inter
 # set peatfree as intercept (peatfree is control soil)
 df_t <- within(df_t, Substrate <- relevel(Substrate, ref = "Peatfree"))
 
-fit1 = lm(Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, data = df_t)
+fit1 = lm(
+  Curved_strawberries ~ Substrate + Trichoderma + Substrate:Trichoderma, 
+  data = df_t)
+
 summary(fit1)
 plot(fit1)
 ```
 
 
-The assumptions and testing plots show good results but no 5% significance is obtained for the overall model (p-value: 0.07216). Analysis of variance (ANOVA) is performed to check which variables best explain the variance present in the data.
+The assumptions and testing plots show good results but no 5% significance is obtained for the overall model (p-value: 0.07216). 
+Analysis of variance (ANOVA) is performed to check which variables best account for the variance present in the data.
 
 ```{r}
 anova(fit1)
@@ -265,12 +273,15 @@ Additionaly, the variance inflation factor (VIF) for the fit can indicate whethe
 vif(fit1, type = "predictor")
 ```
 
-The GVIF values (generalized VIF) indicate there is no correlation between the predictor variables in the model, therefore, all variables of fit1 are kept in the final model.
+The GVIF values (generalized VIF) indicate there is no correlation between the predictor variables in the model, therefore, all variables of fit1 are kept in the final model. Though a more simple model will also be investigated:
 
 Linear model fit with only substrate as explanatory variable:
 
 ```{r}
-fit2 <- lm(Curved_strawberries ~ Substrate, data = df_t)
+fit2 <- lm(
+  Curved_strawberries ~ Substrate, 
+  data = df_t)
+
 summary(fit2)
 plot(fit2)
 ```
@@ -283,12 +294,15 @@ An overall p-value of 0.0442 for the model is obtained, indicating that substrat
 The greenhouse choice could be responsible for technical variation present in the data. As the greenhouses can have a slightly different temperature, humidity, ... Therefore, the greenhouse variable is incorporated in the model. (blocking)
 
 ```{r}
-fit3 = lm(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma, data = df_t)
+fit3 = lm(
+  Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma, 
+  data = df_t)
+
 summary(fit3)
 plot(fit3)
 ```
 
-The model produces less significant results when incorporating the greenhouse choice as a parameter (p-value: 0.09714 vs. 0.07216), but it is kept in the model in order to account for possible technical variation.
+The model produces less significant results when incorporating the greenhouse choice as a parameter (p-value: 0.09714 vs. 0.07216), but it is kept in the model in order to account for possible technical variation. Samples with Substrate:Peat and/or *Trichoderma*:Trich3 generate the most significant results, notably, the combination of both these variables shows a large difference in weight (before back-transformation).
 
 Further statistical testing and pairwise comparison is performed, although the model isn't significant.
 
@@ -296,37 +310,45 @@ Further statistical testing and pairwise comparison is performed, although the m
 vif(fit3, type = "predictor")
 ```
 
-The GVIF values are close to 1, indicating that there is no correlation between any explanatory variables after adding the greenhouse variable.
+The GVIF values are close to 1, indicating that there is no alarming correlation between any explanatory variables after adding the greenhouse variable.
 
 ```{r}
-anova_fit3 <- aov(Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma , data = df_t)
+anova_fit3 <- aov(
+  Curved_strawberries ~ Substrate + Trichoderma + Greenhouse + Substrate:Trichoderma, 
+  data = df_t)
 summary(anova_fit3)
 ```
 
-When performing an ANOVA test, it can be observed that there is only a significant difference between the different substrates. A Tukey post-hoc analysis is performed to compare the different substrates. 
+When performing an ANOVA test, it can be observed that there is only a significant difference when comparing different substrates. A Tukey post-hoc analysis is performed to compare the different substrates. 
 
 ```{r}
 Tukey_fit3 <- TukeyHSD(anova_fit3, which = "Substrate")
 Tukey_fit3
 ```
 
-It can be concluded that only a significant difference in weight of curved strawberries can be found when comparing the substrates peatfree with biochar & peat with biochar (p-value = 0,021). 
+It can be concluded that only a significant difference in weight of curved strawberries can be found when comparing the substrates *peatfree-biochar* & *peat-biochar* (p-value = 0,021). 
 
 The results are back-transformed for interpretation on the original scale.
 
-For the Tukey-test:
+For the Substrate Tukey-test:
 
 ```{r}
 # Peatfree_Biochar-Peat_Biochar
-Tukey_fit3$Substrate[6,]^2
+# back-transform sqrt & convert kg -> g
+data.frame(Tukey_fit3$Substrate[,1:3] ^ 2 * 1000)
 ```
 
-For the overall fit:
+For the significant variables in the overall fit:
 
 ```{r}
-sqroot <- summary(fit3)
-(sqroot$coefficients)^2
-(confint(fit3))^2
+dim(summary(fit3)$coefficients)
+# columns: Estimate Std. Error    t value     Pr(>|t|)
+data.frame(
+  Estimate = (summary(fit3)$coefficients[,1]
+              [summary(fit3)$coefficients[,4] < 0.05]) ^ 2,
+  Conf.Int = (confint(fit3) 
+              [summary(fit3)$coefficients[,4] < 0.05,]) ^ 2
+)
 ```
 
 The lack of significant findings could be due to a lack of power. A power analysis is performed.
@@ -347,6 +369,6 @@ To improve the power of our model to 80%, at least 80 samples would have to be t
 
 No lineair model was found that showed significant results when accounting for the greenhouse choice. The assumptions to use a lineair model were met (normality, homoscedascity, linearity). A linear model could be made with substrate-choice, *trichoderma*-addition, greenhouse blocking and a substrate-*trichoderma* interaction as explanatory variables. Although the model was not significant (p = 0.09714) further statistical testing was performed. The variance inflation factor indicated no correlation between any of the explanatory variables when greenhouse blocking was applied.
 
-The ANOVA test indicated that there are only significant differences in the weight of curved strawberries between different substrates. Further analysis with a Tukey post-hoc test compared the effect between the different substrates. The analysis indicated that a significant difference in the weight of the curved strawberries can be found when comparing peatfree substrate with biochar and substrate containing peat and biochar (p = 0.021). The difference in average weight of the curved strawberries per plant when adding peat to the biochar substrate is 1.511844 g (with a 95% CI in the range [0.02009253, 5.370309]).
+The ANOVA test indicated that there are only significant differences in the weight of curved strawberries between different substrates. Further analysis with a Tukey post-hoc test compared the effect between the different substrates. The analysis indicated that a significant difference in the weight of the curved strawberries can be found when comparing peatfree substrate with biochar and substrate containing peat and biochar (p = 0.0210655). The difference in average weight of the curved strawberries per plant when adding peat to the biochar substrate is 1.51184354 g (with a 95% CI in the range [0.02009253, 5.3703094]).
 
 The lack of significant findings was likely due to a lack of power. A power analysis indicated that our linear model only had a power of 69%, this could be improved by repeating the experiment with more samples. The power analysis also indicated that the power of our model could be increased to 80% by taking at least 80 samples (instead of 64).
