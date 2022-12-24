@@ -77,7 +77,7 @@ The weight of the curved strawberries: `r colnames(data[19])`
 
 - Addition of *Trichoderma*: `r colnames(data[9])`
 
-- Greenhouse: `r colnames(data[3])`
+- Greenhouse: `r colnames(data[4])`
 
 **Observational unit:** 
 The strawberry plant.
@@ -334,8 +334,10 @@ For the Substrate Tukey-test:
 
 ```{r}
 # Peatfree_Biochar-Peat_Biochar
-# back-transform sqrt & convert kg -> g
-data.frame(Tukey_fit3$Substrate[,1:3] ^ 2 * 1000)
+# back-transform sqrt & convert kg -> g & sign
+data.frame(
+  abs(Tukey_fit3$Substrate[,1:3]) ^ 2 * 1000 * sign(Tukey_fit3$Substrate[,1:3])
+  )
 ```
 
 For the significant variables in the overall fit:
@@ -344,12 +346,20 @@ For the significant variables in the overall fit:
 dim(summary(fit3)$coefficients)
 # columns: Estimate Std. Error    t value     Pr(>|t|)
 data.frame(
-  Estimate = (summary(fit3)$coefficients[,1]
-              [summary(fit3)$coefficients[,4] < 0.05]) ^ 2,
-  Conf.Int = (confint(fit3) 
-              [summary(fit3)$coefficients[,4] < 0.05,]) ^ 2
+  Estimate = abs(summary(fit3)$coefficients[,1]
+              [summary(fit3)$coefficients[,4] < 0.05]) ^ 2 * 1000 * sign(
+                (summary(fit3)$coefficients[,1]
+                 [summary(fit3)$coefficients[,4] < 0.05])),
+  
+  Conf.Int = abs(confint(fit3) 
+              [summary(fit3)$coefficients[,4] < 0.05,]) ^ 2 * 1000 * sign(
+                (confint(fit3) 
+                 [summary(fit3)$coefficients[,4] < 0.05,])
+              )
 )
 ```
+
+Some of the variable (combinations) show to have an effect on the weight of curved strawberries, especially the Peat:Trich3 interaction, though the confidence intervals are very broad.
 
 The lack of significant findings could be due to a lack of power. A power analysis is performed.
 
